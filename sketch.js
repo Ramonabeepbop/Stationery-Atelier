@@ -1,4 +1,6 @@
-let stationery = [];
+let stationeryPool = [];
+let activeStationery = [];
+const poolSize = 30;
 let stationeryTypes = [];
 
 function setup() {
@@ -6,101 +8,156 @@ function setup() {
   cnv.parent('Fall');
   console.log('Canvas created and attached to #Fall');
 
-  
-
+  // Define stationery types with spawn weight adjustments
   stationeryTypes = [
-    { type: 'pen', colors: ['#F7C636', '#60D3E1', '#CDDC39', 'rgb(198,123,225)', 'rgb(237,143,171)'], minLength: 30, maxLength: 80, capColor: 'rgb(255,160,160)' },
-    { type: 'eraser', color: 'pink', width: 30, height: 15, shadowColor: 'gray' },
-    { type: 'paper', color: 'white', width: 60, height: 80, shadowColor: 'rgba(0, 0, 0, 0.2)' }
+    { type: 'pen', colors: ['#F5AA3D', '#60D3E1', '#CDDC39', 'rgb(198,123,225)', 'rgb(237,143,171)'], minLength: 30, maxLength: 80, capColor: 'rgb(255,160,160)', spawnWeight: 0.5 },  // Pen is weighted higher
+    { type: 'eraser', color: 'pink', width: 30, height: 15, shadowColor: 'gray', spawnWeight: 0.15 },  // Eraser has a moderate weight
+    { type: 'paper', color: 'white', width: 60, height: 80, shadowColor: 'rgba(0, 0, 0, 0.2)', spawnWeight: 0.1 },  // Paper is weighted low
+    { type: 'ruler', color: '#FFE083', width: 10, height: 100, markingColor: 'rgb(102,100,100)', spawnWeight: 0.1 } // Ruler is weighted low
   ];
-  
-  for (let i = 0; i < 10; i++) {
-    stationery.push(new FallingStationery());
+
+  // Initialize object pool
+  for (let i = 0; i < poolSize; i++) {
+    stationeryPool.push(new FallingStationery());
   }
 }
 
 function draw() {
   background('#D9EDF3');
-  
-  for (let s of stationery) {
-    s.update();
-    s.display();
+
+  // Update & Display Active Objects
+  for (let i = activeStationery.length - 1; i >= 0; i--) {
+    let obj = activeStationery[i];
+    obj.update();
+    obj.display();
+
+    // Recycle objects that go off-screen
+    if (obj.y > height + 50) {
+      activeStationery.splice(i, 1);
+      stationeryPool.push(obj); // Return to pool
+    }
   }
-  
-  if (frameCount % 30 === 0) {
-    stationery.push(new FallingStationery());
+
+  // Spawn new objects from the pool with weighted probabilities
+  if (frameCount % 20 === 0 && activeStationery.length < poolSize) {
+    if (stationeryPool.length > 0) {
+      let obj = stationeryPool.pop();
+      obj.reset();
+      activeStationery.push(obj);
+    }
+  }
+}
+
+class Rule {
+  constructor(condition, action) {
+    this.condition = condition;
+    this.action = action;
   }
 }
 
 class FallingStationery {
   constructor() {
+    this.reset();
+  }
+
+  reset() {
     this.x = random(width);
     this.y = random(-100, -10);
-    this.speed = random(2, 5);
-    this.type = random(stationeryTypes);
-    this.angle = random(-PI / 6, PI / 6); // Small rotation effect
-    
+    this.speed = random(2, 3.5);
+    this.type = this.selectStationeryType();
+    this.angle = random(-PI / 6, PI / 6);
+
     if (this.type.type === 'pen') {
-      // Random pen color and length
       this.color = random(this.type.colors);
       this.length = random(this.type.minLength, this.type.maxLength);
-      this.width = map(this.length, this.type.minLength, this.type.maxLength, 5, 10); // Width proportional to length
+      this.width = map(this.length, this.type.minLength, this.type.maxLength, 5, 10);
+      this.speed *= 1.2; // Increase speed for pens
     } else {
-      // Use fixed size for eraser and paper
       this.color = this.type.color;
       this.length = this.type.height;
       this.width = this.type.width;
     }
   }
-  
-  update() {
-    this.y += this.speed;
-    if (this.y > height) {
-      this.y = random(-100, -10);
-      this.x = random(width);
-      this.speed = random(2, 5);
-      this.type = random(stationeryTypes);
-      this.angle = random(-PI / 6, PI / 6);
-      // Reinitialize pen properties
-      if (this.type.type === 'pen') {
-        this.color = random(this.type.colors);
-        this.length = random(this.type.minLength, this.type.maxLength);
-        this.width = map(this.length, this.type.minLength, this.type.maxLength, 5, 10); // Adjust width when length changes
+
+  selectStationeryType() {
+    let totalWeight = 0;
+    for (let type of stationeryTypes) {
+      totalWeight += type.spawnWeight;
+    }
+
+    let randomChoice = random(totalWeight);
+    let cumulativeWeight = 0;
+    for (let type of stationeryTypes) {
+      cumulativeWeight += type.spawnWeight;
+      if (randomChoice < cumulativeWeight) {
+        return type;
       }
     }
   }
-  
+
+  update() {
+    this.y += this.speed;
+  }
+
   display() {
     push();
     translate(this.x, this.y);
     rotate(this.angle);
     noStroke();
-    
-    if (this.type.type === 'pen') {
-      // Pen body
-      fill(this.color);
-      rect(-this.width / 2, -this.length / 2, this.width, this.length, 5);
-      // Pen cap
-      fill(this.type.capColor);
-      ellipse(0, -this.length / 2 - 5, this.width, this.width);
-      
-    } else if (this.type.type === 'eraser') {
-      // Eraser body
-      fill(this.type.color);
-      rect(-this.width / 2, -this.length / 2, this.width, this.length);
-      // Adding a shadow for the eraser
-      drawingContext.shadowColor = color(this.type.shadowColor);
-      drawingContext.shadowBlur = 10;
-      rect(-this.width / 2, this.length / 2, this.width, 5); // Representing the rubber edge of the eraser
 
-    } else if (this.type.type === 'paper') {
-      // Paper
-      fill(this.type.color);
-      drawingContext.shadowColor = color(this.type.shadowColor);
-      drawingContext.shadowBlur = 15;
-      rect(-this.width / 2, -this.length / 2, this.width, this.length);
+    // List of rules that determine how to display different stationery types
+    let rules = [
+      new Rule(() => this.type.type === 'pen', () => {
+        fill(this.color);
+        rect(-this.width / 2, -this.length / 2, this.width, this.length, 5);
+        fill(this.type.capColor);
+        ellipse(0, -this.length / 2 - 5, this.width, this.width);
+      }),
+      new Rule(() => this.type.type === 'eraser', () => {
+        fill(this.type.color);
+        rect(-this.width / 2, -this.length / 2, this.width, this.length);
+      }),
+      new Rule(() => this.type.type === 'paper', () => {
+        fill(this.type.color);
+        rect(-this.width / 2, -this.length / 2, this.width, this.length);
+
+        // Apply shadow effect
+        drawingContext.shadowColor = color(this.type.shadowColor);
+        drawingContext.shadowBlur = 15;
+
+        // Add horizontal blue lines (notebook effect)
+        stroke(0, 0, 255, 100);
+        strokeWeight(1);
+        for (let i = -this.length / 2 + 10; i < this.length / 2; i += 10) {
+          line(-this.width / 2 + 5, i, this.width / 2 - 5, i);
+        }
+
+        // Add vertical red margin line
+        stroke(255, 0, 0, 100);
+        strokeWeight(2);
+        line(-this.width / 2 + 10, -this.length / 2, -this.width / 2 + 10, this.length / 2);
+      }),
+      new Rule(() => this.type.type === 'ruler', () => {
+        fill(this.type.color);
+        rect(-this.width / 2, -this.length / 2, this.width, this.length);
+
+        // Add black ruler markings
+        stroke(this.type.markingColor);
+        strokeWeight(2);
+        for (let i = -this.length / 2 + 10; i < this.length / 2; i += 10) {
+          let markLength = i % 50 === 0 ? this.width / 2 : this.width / 3; // Longer marks at every 50 units
+          line(-this.width / 2, i, -this.width / 2 + markLength, i);
+        }
+      })
+    ];
+
+    // Loop through all rules and apply the matching action
+    for (let rule of rules) {
+      if (rule.condition()) {
+        rule.action();
+      }
     }
-    
+
     pop();
   }
 }
