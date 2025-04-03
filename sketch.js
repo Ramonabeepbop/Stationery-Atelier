@@ -1,6 +1,6 @@
 let stationeryPool = [];
 let activeStationery = [];
-const poolSize = 30;
+const poolSize = 50;
 let stationeryTypes = [];
 
 function setup() {
@@ -39,7 +39,7 @@ function draw() {
   }
 
   // Spawn new objects from the pool with weighted probabilities
-  if (frameCount % 20 === 0 && activeStationery.length < poolSize) {
+  if (frameCount % 10 === 0 && activeStationery.length < poolSize) {
     if (stationeryPool.length > 0) {
       let obj = stationeryPool.pop();
       obj.reset();
@@ -61,22 +61,25 @@ class FallingStationery {
   }
 
   reset() {
-    this.x = random(width);
-    this.y = random(-100, -10);
-    this.speed = random(2, 3.5);
-    this.type = this.selectStationeryType();
-    this.angle = random(-PI / 6, PI / 6);
+    this.x = random(width);  // Keep falling down the screen (no horizontal wind)
+    this.y = random(-100, -10);  // Start a little above the screen for smooth fall
+    this.speed = random(2, 3.5);  // Random fall speed, can be tweaked for more variety
+    this.angle = random(-PI / 6, PI / 6);  // Slight angle variation for each object
 
+    this.type = this.selectStationeryType();
+    
     if (this.type.type === 'pen') {
       this.color = random(this.type.colors);
       this.length = random(this.type.minLength, this.type.maxLength);
       this.width = map(this.length, this.type.minLength, this.type.maxLength, 5, 10);
-      this.speed *= 1.2; // Increase speed for pens
+      this.speed *= 1.2;  // Pens fall faster
     } else {
       this.color = this.type.color;
       this.length = this.type.height;
       this.width = this.type.width;
     }
+
+    this.rotationSpeed = random(0.01, 0.05);  // Slight random rotation for each object
   }
 
   selectStationeryType() {
@@ -96,7 +99,8 @@ class FallingStationery {
   }
 
   update() {
-    this.y += this.speed;
+    this.y += this.speed;  // Keep falling straight down
+    this.angle += this.rotationSpeed;  // Apply slight rotation
   }
 
   display() {
