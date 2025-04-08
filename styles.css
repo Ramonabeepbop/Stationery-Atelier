@@ -76,13 +76,45 @@ nav ul li a {
 .cta-button {
     display: inline-block;
     padding: 15px 30px;
-    background-color: #ed8545;
+    background-color: #ed8545; /* Button color */
     color: white;
     text-decoration: none;
     font-size: 1.1rem;
     font-weight: bold;
     border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin-top: 360px;
+    position: relative; 
+    z-index: 1; 
+  overflow: hidden; 
 }
+.cta-button::before {
+    content: '';
+  position: absolute;
+  top: 50%;  
+  left: 50%; 
+  width: 250%; 
+  height: 250%; 
+  background-color: rgba(1, 173, 247, 0.747); 
+  border-radius: 50%; 
+  animation: pulse 1.5s infinite; 
+  transform: translate(-50%, -50%); 
+  z-index: -1;
+  }
+  @keyframes pulse {
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.2); 
+      opacity: 0.5; 
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+  }
 .cta-button:hover {
     background-color: #6c92f1;
 }
