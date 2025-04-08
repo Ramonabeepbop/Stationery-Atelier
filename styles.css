@@ -51,12 +51,13 @@ nav ul li a {
     font-size: 18px;
 }
 .hero {
+    position: relative;
     text-align: center;
     padding: 100px 20px;
     background: url('https://static2.jetpens.com/images/a/000/261/261368.jpg?s=baeb6948425e4100566c034d0d5c87e6') no-repeat center center/cover;
-    color: black;
-    min-height: 400px;
+    color: rgb(255, 255, 255);
     min-height: 800px;
+    z-index: 0;
 }
 
 .hero h1 {
@@ -67,11 +68,12 @@ nav ul li a {
 }
 
 .hero p {
+    font-family: 'Rubik', sans-serif;
     font-size: 18px;
     max-width: 600px;
     margin: auto;
     color: #ffffff;
-    text-shadow: 20px 20px 50px rgba(0, 0, 0, 0.3); 
+    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7); 
 }
 .cta-button {
     display: inline-block;
@@ -84,21 +86,21 @@ nav ul li a {
     border-radius: 5px;
     transition: background-color 0.3s ease;
     margin-top: 360px;
-    position: relative; 
-    z-index: 1; 
+    position: relative;  /* Ensure the button is the reference for the pseudo-element */
+  z-index: 1;  /* Ensure the button is above the pulse */
   overflow: hidden; 
 }
 .cta-button::before {
     content: '';
   position: absolute;
-  top: 50%;  
-  left: 50%; 
-  width: 250%; 
-  height: 250%; 
-  background-color: rgba(1, 173, 247, 0.747); 
-  border-radius: 50%; 
-  animation: pulse 1.5s infinite; 
-  transform: translate(-50%, -50%); 
+  top: 50%;  /* Position it at the center vertically */
+  left: 50%; /* Position it at the center horizontally */
+  width: 250%; /* Start with a size that will allow it to pulse */
+  height: 250%; /* Same size as width */
+  background-color: rgba(1, 173, 247, 0.747); /* Transparent green glow */
+  border-radius: 50%; /* Make the pulse effect round */
+  animation: pulse 1.5s infinite; /* Apply the pulse animation */
+  transform: translate(-50%, -50%); /* Center the pulse on the button */
   z-index: -1;
   }
   @keyframes pulse {
@@ -107,8 +109,8 @@ nav ul li a {
       opacity: 1;
     }
     50% {
-      transform: translate(-50%, -50%) scale(1.2); 
-      opacity: 0.5; 
+      transform: translate(-50%, -50%) scale(1.2); /* Expand the pulse */
+      opacity: 0.5; /* Make it more transparent */
     }
     100% {
       transform: translate(-50%, -50%) scale(1);
@@ -116,7 +118,17 @@ nav ul li a {
     }
   }
 .cta-button:hover {
-    background-color: #6c92f1;
+    background-color: #6c92f1; /* Hover effect */
+}
+.hero:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3); /* Semi-transparent black overlay */
+    z-index: -1; /* Make sure the overlay is behind the text */
 }
 details {
     margin: 10px;
@@ -346,7 +358,7 @@ img {
 }
 
 .celebrate-btn:hover {
-    background-color: #80cbf6;
+    background-color: #6690a8;
     transform: scale(1.1);
 }
 .feedback-form {
@@ -400,7 +412,7 @@ input, textarea, select {
 }
 
 .submit-btn:hover {
-    background-color: #0056b3;
+    background-color: #70b3fa;
 }
 /* Style for the trail elements (images) */
 .trail {
